@@ -32,3 +32,4 @@ var X = simdfied.mat().from2dArray([[645, 860, 1000, 1300, 1400], [2, 3, 3, 4, 5
 <br>> predicting for features [900,3] the value of 380,217.40
 </p>
 
+<h3>Check our wiki <a href="https://github.com/morkrispil/simdfied/wiki">API!</a></h3>
