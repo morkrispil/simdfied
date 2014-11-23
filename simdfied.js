@@ -815,6 +815,10 @@ var gradientDescent = function(ml) {
 		} else {
 			ml.cost[i] = cost;
 		}
+		
+		if(postMessage){
+			postMessage({prog: i / ml.settings["iter"], onProg: ml.onProg});
+		}
 	}
 
 	console.log("gradientDescent done (" + formatThousands(new Date() - timeStamp) + "ms)");
@@ -909,7 +913,6 @@ var norm = function(ml) {
 			}, this);
 		}
 	}
-
 	ml.yNorm = simdfied.vec(ml.y).slice(0, ml.trainSize).vec;
 	ml.yTest = simdfied.vec(ml.y).slice(ml.trainSize,
 			ml.trainSize + ml.testSize);
@@ -1033,11 +1036,22 @@ var kmeans = function(ml) {
 		}
 	}
 }
+var currentScript = function(){
+	return "simdfied.min.js";
+}
+var currentLocation = function(){
+	return document.location.href.substring(0, document.location.href.lastIndexOf("/"));
+}
+
 var SimdMl = function(simdMl) {
 	if (simdMl && simdMl.isSimdfiedMl) {
 		return simdMl; // already a selector
 	} else {
-		this.ml = simdMl ? simdMl : {split: [1,0,0], settings:{addInter: true, normMeanStd: true, regLambda: false, iter: 1500, alpha: 0.01, kmeansK: 3, kmeansIter: 10}};
+		this.ml = simdMl ? simdMl : {
+			split: [1,0,0],
+			settings: {addInter: true, normMeanStd: true, regLambda: false, iter: 100, alpha: 0.01, kmeansK: 3, kmeansIter: 10},
+			worker: null
+		};	
 		this.isSimdfiedMl = true;
 	}
 
@@ -1066,7 +1080,15 @@ var SimdMl = function(simdMl) {
 		if(!simdVec || !simdVec.isSimdfiedVec || simdVec.length() == 0){
 			throw("y must be a non empty simdfied vector");
 		}
-		this.ml.y = simdVec;
+		this.ml.y = simdVec.vec;
+		return simdfied.ml(this.ml);
+	}
+	this.onProg = function(fn){
+		if(typeof(fn) != "function"){
+			throw("progress call back must be a funcion");
+		}
+		//this.ml.onProg = fn;
+		this.ml.onProg = fn.name;
 		return simdfied.ml(this.ml);
 	}
 	this.split = function(split){
@@ -1098,6 +1120,18 @@ var SimdMl = function(simdMl) {
 		this.ml.settings[key] = value;
 		return simdfied.ml(this.ml);
 	}
+	this.parse = function(obj){
+		return simdfied.ml(JSON.parse(obj, function(key, value) {
+			if (value === "Infinity") {
+				return Infinity;
+			} else if (value === "-Infinity") {
+				return -Infinity;
+			} else if (value === "NaN") {
+				return NaN;
+			}
+			return value;
+		}));
+	}
 	this.reset = function(){
 		switch(this.ml.algo){
 			case "kmeans":
@@ -1105,7 +1139,22 @@ var SimdMl = function(simdMl) {
 				break;
 		}
 	}
-	this.run = function(){
+	this.run = function(cbDone){
+		if(!this.ml.worker){
+			var mlWorkerCode = "importScripts('" + currentLocation() + "/" + currentScript() + "');" + "onmessage = function (e){postMessage(simdfied.ml().parse(e.data).runWorker().stringify()); self.close()}";
+			this.ml.worker = this.ml.worker || new Worker(window.URL.createObjectURL(new Blob([mlWorkerCode])));
+		}
+		this.ml.worker.onmessage = function(e){
+			if(e.data && e.data.prog && e.data.onProg){
+				eval(e.data.onProg + "('" + e.data.prog + "');");
+			}
+			else{
+				cbDone(simdfied.ml().parse(e.data));
+			}
+		}
+		this.ml.worker.postMessage(this.stringify());
+	}
+	this.runWorker = function(){
 		if(!this.ml.algo){
 			throw("algorithm type must be specified using the \"algo\" function");
 		}
@@ -1134,6 +1183,20 @@ var SimdMl = function(simdMl) {
 	}
 
 	//other types
+	this.stringify = function(){
+		return JSON.stringify(this.ml, function(key, value) {
+			if (typeof (value) == "number" && isNaN(value)) {
+				return 'NaN';
+			}
+			if (value === Infinity) {
+				return 'Infinity';
+			}
+			if (value === -Infinity) {
+				return '-Infinity';
+			}
+			return value;
+		});
+	}
 	this.hipo = function(){
 		return hipo(this.ml);
 	}
