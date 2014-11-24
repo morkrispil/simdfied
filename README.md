@@ -20,7 +20,7 @@ var X = simdfied.mat().from2dArray([[645, 860, 1000, 1300, 1400], [2, 3, 3, 4, 5
 var ml = simdfied.ml().algo("linReg").X(X).y(y).set("iter", 1500);<br>
 ml.run(function(ml){ ml.predOne([900, 3]); });</p>
 
-<p>> running linear regression
+<br><p>> running linear regression
 <br>> normalization done (4ms)
 <br>> initial cost: 113,750,000,000.00
 <br>> gradientDescent done (209ms)
