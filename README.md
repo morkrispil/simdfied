@@ -17,7 +17,7 @@
 var X = simdfied.mat().from2dArray([[645, 860, 1000, 1300, 1400], [2, 3, 3, 4, 5]]);</p>
 <p>//load our y vector with house prices
 <br>var y = simdfied.vec().fromArray([250000, 350000, 400000, 550000, 700000]);</p>
-<br>var ml = simdfied.ml().algo("linReg").X(X).y(y).set("iter", 1500);<br>
+var ml = simdfied.ml().algo("linReg").X(X).y(y).set("iter", 1500);<br>
 ml.run(function(ml){ ml.predOne([900, 3]); });</p>
 
 <p>> running linear regression
