@@ -12,15 +12,18 @@
 
 <h2>Example</h2>
 <p>//house prices prediction, using linear regression:</p>
+
 <p>//load our X matrix with 2 features: square foot and number of bedrooms
-<br>
-var X = simdfied.mat().from2dArray([[645, 860, 1000, 1300, 1400], [2, 3, 3, 4, 5]]);</p>
+<br>var X = simdfied.mat().from2dArray([[645, 860, 1000, 1300, 1400], [2, 3, 3, 4, 5]]);</p>
+
 <p>//load our y vector with house prices
 <br>var y = simdfied.vec().fromArray([250000, 350000, 400000, 550000, 700000]);</p>
-var ml = simdfied.ml().algo("linReg").X(X).y(y).set("iter", 1500);<br>
-ml.run(function(ml){ ml.predOne([900, 3]); });</p>
 
-<br><p>> running linear regression
+<p>//run and predict a price for a 3 bedroom, 900 square footage house:
+<br>var ml = simdfied.ml().algo("linReg").X(X).y(y).set("iter", 1500);
+<br>ml.run(function(ml){ ml.predOne([900, 3]); });</p>
+
+<p>> running linear regression
 <br>> normalization done (4ms)
 <br>> initial cost: 113,750,000,000.00
 <br>> gradientDescent done (209ms)
