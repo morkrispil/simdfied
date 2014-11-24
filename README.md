@@ -1,18 +1,14 @@
-<h1>simdfied (WIP)</h1>
+<h1>simdfied (WIP) - <a target="_blank" href="http://www.simdfied.org">www.simdfied.org</a></h1>
 
-<h2>Machine Learning. browser easy</h2>
-<p>
-Easily connect your local data and run classic <a target="_blank" href="http://en.wikipedia.org/wiki/Supervised_learning">supervised</a> and <a target="_blank" href="http://en.wikipedia.org/wiki/Unsupervised_learning"> unsupervised</a> algorithms (WIP)
-</p><p>
-Modern HTML file APIs brings the data even closer to your browser, allowing for a zero-server ML web app. Check out <a target="_blank" href="http://mlplayground.org">ML Playground</a>, it's powered by simdfied and does exactly that!
-</p>
+<h2>Machine Learning. browser easy.</h2>
+<p>simdfied is a ML javascript library, utilizing <a target="_blank" href="http://en.wikipedia.org/wiki/SIMD">SIMD</a> for matrix operations (WIP)<br>Easily connect your local data and run classic <a target="_blank" href="http://en.wikipedia.org/wiki/Supervised_learning">supervised</a> and <a target="_blank" href="http://en.wikipedia.org/wiki/Unsupervised_learning"> unsupervised</a> algorithms</p>
+<p>Combined with latest HTML5 technology, your data gets even closer to your browser, allowing for a zero-server ML web apps. Check out <a target="_blank" href="http://www.mlplayground.org">ML Playground</a>, it's powered by simdfied and does exactly that!</p>
+<p>simdfied is 100% pure javascript and is licensed under the MIT open-source <a target="_blank" href="https://github.com/morkrispil/simdfied/blob/master/LICENSE.md">license</a></p>
 <h2>SIMD technology</h2>
-<p>
-<a target="_blank" href="http://en.wikipedia.org/wiki/SIMD">SIMD</a> allows for multiple numbers processing in a single CPU instruction. It's even cooler when it comes to vectorized matrix operations, traditionally used only by ml and statistics desktop software
-</p><p>
-Latest <a target="_blank" href="https://01.org/blogs/tlcounts/2014/bringing-simd-javascript">collaboration</a> by Intel, Google and Mozilla, enables a preview native SIMD support for firefox-nightly and chromium browsers!
-</p><p>
-simdfied embraces the initiation and aims for javascript matrix and ML SIMD based operations, enabling backward compatibility along the way
+<p><a target="_blank" href="http://en.wikipedia.org/wiki/SIMD">SIMD</a> allows for multiple computations in a single CPU instruction<br>It's even cooler when it comes to vectorized matrix operations, traditionally utilized only by desktop software</p>
+<p>Latest <a target="_blank" href="https://01.org/blogs/tlcounts/2014/bringing-simd-javascript">collaboration</a> by Intel, Google and Mozilla, enables a preview native SIMD support for firefox-nightly and chromium browsers!</p>
+<p>simdfied embraces the initiation and provides browsers with SIMD compatibility, as it gets popular</p>
+
 
 <h2>Example</h2>
 <p>//house prices prediction, using linear regression:</p>
