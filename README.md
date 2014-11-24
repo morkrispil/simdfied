@@ -21,8 +21,8 @@ simdfied embraces the initiation and aims for javascript matrix and ML SIMD base
 var X = simdfied.mat().from2dArray([[645, 860, 1000, 1300, 1400], [2, 3, 3, 4, 5]]);</p>
 <p>//load our y vector with house prices
 <br>var y = simdfied.vec().fromArray([250000, 350000, 400000, 550000, 700000]);</p>
-<p>//run and predict a price for a 3 bedroom, 900 square foot house:
-<br>var ml = simdfied.ml().algo("linReg").X(X).y(y).run().predOne([3, 900]);</p>
+<br>var ml = simdfied.ml().algo("linReg").X(X).y(y).set("iter", 1500);<br>
+ml.run(function(ml){ ml.predOne([900, 3]); });</p>
 
 <p>> running linear regression
 <br>> normalization done (4ms)

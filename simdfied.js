@@ -1037,7 +1037,7 @@ var kmeans = function(ml) {
 	}
 }
 var currentScript = function(){
-	return "simdfied.min.js";
+	return "simdfied.js";
 }
 var currentLocation = function(){
 	return document.location.href.substring(0, document.location.href.lastIndexOf("/"));
@@ -1089,6 +1089,9 @@ var SimdMl = function(simdMl) {
 		}
 		//this.ml.onProg = fn;
 		this.ml.onProg = fn.name;
+		//this.ml.onProg = fn.name || ("(" + fn.toString() + ")");//function name, or anonymous function body
+		//this.ml.onProg = ("(" + fn.toString() + ")");
+		//this.ml.onProg = fn.toString();
 		return simdfied.ml(this.ml);
 	}
 	this.split = function(split){
@@ -1145,11 +1148,28 @@ var SimdMl = function(simdMl) {
 			this.ml.worker = this.ml.worker || new Worker(window.URL.createObjectURL(new Blob([mlWorkerCode])));
 		}
 		this.ml.worker.onmessage = function(e){
-			if(e.data && e.data.prog && e.data.onProg){
-				eval(e.data.onProg + "('" + e.data.prog + "');");
+			if(e.data && e.data.prog){
+				if(e.data.onProg){
+					try{
+						//new Function(e.data.onProg).call(self, e.data.prog);
+						eval(e.data.onProg + "('" + e.data.prog + "');");
+					}
+					catch(e){
+						debugger;
+						console.log(e);
+					}				
+				}
 			}
 			else{
-				cbDone(simdfied.ml().parse(e.data));
+				if(typeof(cbDone != "function")){
+					try{
+						cbDone.call(self, simdfied.ml().parse(e.data));
+					}
+					catch(e){
+						debugger;
+						console.log(e);
+					}								
+				}
 			}
 		}
 		this.ml.worker.postMessage(this.stringify());
