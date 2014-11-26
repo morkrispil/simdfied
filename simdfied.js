@@ -1,6 +1,6 @@
 (function() {
 var simdfied = {
-	version : "1.0.0"
+	version : "1.0.1"
 };
 
 // polyfill
@@ -283,12 +283,7 @@ var vecComp = function(arrSIMD1, arrSIMD2) {
 	}, this);
 }
 var vecSigmoid = function(arrSIMD) {
-	/*[si, sj] = size(z);
-	for i = 1 : si
-		for j = 1 : sj
-			g(i, j) = 1 / (1 + * e ^ (-1 * z(i, j)));
-		endfor
-	endfor*/
+	//g(i, j) = 1 / (1 + * e ^ (-1 * z(i, j)));
 	return arrSIMD.map(function(item) {
 		return SIMD.float32x4.div(SIMD.float32x4(1, 1, 1, 1),
 				SIMD.float32x4.add(SIMD.float32x4(1, 1, 1, 1), scalSimdPow(
@@ -849,6 +844,12 @@ var costFun = function(ml) {
 		var step1 = yNeg.mulElm(h.log());
 		//(1 - y) .* log(1 - h)
 		var step2 = yNeg.addScal(1).mulElm(h.neg().addScal(1).log());
+		//In case we got new NaNs - return high cost to exit loop
+		//It currently happens when log returns -Infinity because sigmoid returned 1, and later multiplied by zero (=>undefined)
+		//TODO: adjust values to the right "dynamic range"
+		if(step2.length() < step1.length()){
+			return Infinity;
+		}
 		var sum1 = step1.sub(step2).sum();
 
 		var J = (1 / ml.m) * sum1;
@@ -878,13 +879,12 @@ var norm = function(ml) {
 	if (ml.settings["addInter"]) {
 		ml.XNorm[0] = simdfied.vec().ones(ml.trainSize).vec;
 		if (ml.testSize > 0) {
-			ml.XTest[0] = simdfied.vec().ones(ml.testSize);
+			ml.XTest[0] = simdfied.vec().ones(ml.testSize).vec;
 		}
 	}
-
 	if (ml.settings["featMap"] && ml.X.length > 1) {
-		ml.XNorm = ml.XNorm.concat(simdfied.vec(ml.X[0]).slice(0, ml.trainSize).featMap(simdfied.vec(ml.X[1]).slice(0, ml.trainSize), ml.settings["featMap"]).mat);
-		ml.XTest = ml.XTest.concat(simdfied.vec(ml.X[0]).slice(ml.trainSize, ml.trainSize + ml.testSize).featMap(simdfied.vec(ml.X[1]).slice(ml.trainSize, ml.trainSize + ml.testSize), ml.settings["featMap"]).mat);
+		ml.XNorm = ml.XNorm.concat(simdfied.vec(ml.X[0]).slice(0, ml.trainSize).featMap(simdfied.vec(ml.X[1]).slice(0, ml.trainSize).vec, ml.settings["featMap"]).mat);
+		ml.XTest = ml.XTest.concat(simdfied.vec(ml.X[0]).slice(ml.trainSize, ml.trainSize + ml.testSize).featMap(simdfied.vec(ml.X[1]).slice(ml.trainSize, ml.trainSize + ml.testSize).vec, ml.settings["featMap"]).mat);
 	}
 
 	for (var i = 0; i < ml.X.length; i++) {
@@ -921,27 +921,26 @@ var norm = function(ml) {
 	timeStamp = new Date();
 	ml.XNormT = simdfied.mat(ml.XNorm).trans().mat;
 	if (ml.testSize > 0) {
-		ml.XTestT = simdfied.mat(ml.XTestT).trans().mat;
+		ml.XTestT = simdfied.mat(ml.XTest).trans().mat;
 	}
 	//console.log("X transpose done (" + formatThousands(new Date() - timeStamp) + "ms)");
 }
-var acurr = function(ml) {
+var accur = function(ml) {
 	switch (ml.algo) {
 		case "logReg":
 			var trainPred = hipo(ml);
-			trainPred = simdfied.vec(trainPred).sigmoid().round();
-			ml.trainAcurr = simdfied.vec(ml.yNorm).comp(trainPred).sum() / simdfied.vec(ml.yNorm).length();
-			console.log("train acurracy: " + ml.trainAcurr*100 + "%");
+			trainPred = simdfied.vec(trainPred).round();
+			ml.trainAccur = simdfied.vec(ml.yNorm).comp(trainPred).sum() / simdfied.vec(ml.yNorm).length();
+			console.log("train accuracy: " + ml.trainAccur*100 + "%");
 			break;
 	}
 
 	if (ml.testSize > 0) {
 		switch (ml.algo) {
 			case "logReg":
-				var testPred = simdfied.mat(ml.XTestT).mulVec(ml.theta);
-				testPred = simdfied.vec(testPred).sigmoid().round();
-				ml.testAcurr = simdfied.vec(ml.yTest).comp(testPred).sum() / simdfied.vec(ml.yTest).length();
-				console.log("test acurracy: " + (ml.testAcurr*100).toFixed(1) + "%");
+				var testPred = simdfied.mat(ml.XTestT).mulVec(ml.theta).sigmoid().round();
+				ml.testAccur = simdfied.vec(ml.yTest).comp(testPred).sum() / simdfied.vec(ml.yTest).length();
+				console.log("test accuracy: " + (ml.testAccur*100).toFixed(1) + "%");
 				break;
 		}
 	}
@@ -1143,10 +1142,22 @@ var SimdMl = function(simdMl) {
 		}
 	}
 	this.run = function(cbDone){
-		if(!this.ml.worker){
-			var mlWorkerCode = "importScripts('" + currentLocation() + "/" + currentScript() + "');" + "onmessage = function (e){postMessage(simdfied.ml().parse(e.data).runWorker().stringify()); self.close()}";
-			this.ml.worker = this.ml.worker || new Worker(window.URL.createObjectURL(new Blob([mlWorkerCode])));
+		if(this.ml.worker && this.ml.worker.terminate){
+			try{			
+				this.ml.worker.terminate();
+			}
+			catch(e){
+				console.log(e);
+			}
+			this.ml.worker = null;
 		}
+		var mlWorkerCode = 
+		"importScripts('" + currentLocation() + "/" + currentScript() + "');\n"
+		+"onmessage=function(e){\n"
+			+"postMessage(simdfied.ml().parse(e.data).runWorker().stringify());\n"
+			+"self.close();\n"
+		+"}\n";
+		this.ml.worker = new Worker(window.URL.createObjectURL(new Blob([mlWorkerCode])));
 		this.ml.worker.onmessage = function(e){
 			if(e.data && e.data.prog){
 				if(e.data.onProg){
@@ -1155,18 +1166,16 @@ var SimdMl = function(simdMl) {
 						eval(e.data.onProg + "('" + e.data.prog + "');");
 					}
 					catch(e){
-						debugger;
 						console.log(e);
 					}				
 				}
 			}
 			else{
-				if(typeof(cbDone != "function")){
+				if(typeof(cbDone) == "function"){
 					try{
 						cbDone.call(self, simdfied.ml().parse(e.data));
 					}
 					catch(e){
-						debugger;
 						console.log(e);
 					}								
 				}
@@ -1192,7 +1201,7 @@ var SimdMl = function(simdMl) {
 			case "logReg":
 				norm(this.ml);
 				gradientDescent(this.ml);
-				acurr(this.ml);
+				accur(this.ml);
 				break;
 			case "kmeans":
 				kmeans(this.ml);
