@@ -3,9 +3,17 @@ var simdfied = {
 	version : "1.0.1"
 };
 
+if (typeof (console) == "undefined") {
+	console = {};
+	console.log = function(message){
+		//do nothing
+		//TODO pass console logs to main thread?
+	}
+}
+
 // polyfill
 if (typeof (SIMD) == "undefined") {
-	console.log("SIMD is not natively supported in this browser (try firefox nightly). generating required SIMD polyfill");
+	console.log("SIMD is not natively supported in this browser. generating required polyfill");
 	SIMD = {};
 	SIMD.float32x4 = function(_x, _y, _z, _w) {
 		return {
@@ -15,14 +23,7 @@ if (typeof (SIMD) == "undefined") {
 			w : parseFloat(_w)
 		};
 	}
-	SIMD.float32x4.zero = function() {
-		return {
-			x : 0,
-			y : 0,
-			z : 0,
-			w : 0
-		};
-	}
+
 	SIMD.float32x4.add = function(s1, s2) {
 		return {
 			x : s1.x + s2.x,
@@ -80,6 +81,16 @@ if (typeof (SIMD) == "undefined") {
 		};
 	}
 }
+//removed from firefox nightly, so adding it separately
+SIMD.float32x4.zero = SIMD.float32x4.zero || function() {
+	return {
+		x : 0,
+		y : 0,
+		z : 0,
+		w : 0
+	};
+}
+
 
 //utils
 var formatThousands = formatThousands ||  function formatThousands(f) {
@@ -1142,15 +1153,8 @@ var SimdMl = function(simdMl) {
 		}
 	}
 	this.run = function(cbDone){
-		if(this.ml.worker && this.ml.worker.terminate){
-			try{			
-				this.ml.worker.terminate();
-			}
-			catch(e){
-				console.log(e);
-			}
-			this.ml.worker = null;
-		}
+		this.stop();
+
 		var mlWorkerCode = 
 		"importScripts('" + currentLocation() + "/" + currentScript() + "');\n"
 		+"onmessage=function(e){\n"
@@ -1209,6 +1213,17 @@ var SimdMl = function(simdMl) {
 		}
 
 		return simdfied.ml(this.ml);
+	}
+	this.stop = function(){
+		if(this.ml.worker && this.ml.worker.terminate){
+			try{			
+				this.ml.worker.terminate();
+			}
+			catch(e){
+				console.log(e);
+			}
+			this.ml.worker = null;
+		}
 	}
 
 	//other types
