@@ -840,9 +840,18 @@ var hipo = function(ml) {
 var costFun = function(ml) {
 	if (ml.algo == "linReg") {
 		//h = X * theta;
-		//J = 1/(2*m) * sum((h - y).^2);              
+		//J = 1/(2*m) * sum((h - y).^2);
+		//with lambda: J = 1/(2*m) * sum((h - y).^2) + lambda/(2*m) * sum(theta(2:end).^2);              
 		var h = simdfied.vec(hipo(ml));
-		return 1 / (2 * ml.m) * h.sub(ml.yNorm).sqr().sum();
+		var J = 1 / (2 * ml.m) * h.sub(ml.yNorm).sqr().sum()
+
+		if (ml.settings["regLambda"] != false) {
+			//sum(theta(2:end).^2)
+			var sum = simdfied.vec(ml.theta).sqr().sum() - Math.pow(ml.theta[0].x, 2);//The sum excluding the 1st
+			J += ((ml.settings["regLambda"] / (2 * ml.m)) * sum);
+		}
+
+		return J;
 	} else if (ml.algo == "logReg") {
 		//h = sigmoid(X * theta);
 		//J = 1/m * sum(-y .* log(h) - (1 - y) .* log(1 - h));
@@ -864,10 +873,9 @@ var costFun = function(ml) {
 		var sum1 = step1.sub(step2).sum();
 
 		var J = (1 / ml.m) * sum1;
-		if (ml.settings["regLambda"]) {
+		if (ml.settings["regLambda"] != false) {
 			//sum(theta(2:size(theta)).^2)
-			var sum2 = simdfied.vec(ml.theta).sqr().sum()
-					- Math.pow(ml.theta[0].x, 2);//The sum excluding the 1st
+			var sum2 = simdfied.vec(ml.theta).sqr().sum() - Math.pow(ml.theta[0].x, 2);//The sum excluding the 1st
 			J += ((ml.settings["regLambda"] / (2 * ml.m)) * sum2);
 		}
 		return J;
