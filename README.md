@@ -1,8 +1,8 @@
-<h1>simdfied (WIP) - <a target="_blank" href="http://www.simdfied.org">www.simdfied.org</a></h1>
+<h1>simdfied (WIP) - <a target="_blank" href="http://simdfied.appspot.com">simdfied.appspot.com</a></h1>
 
 <h2>Machine Learning. browser easy.</h2>
 <p>simdfied is a ML javascript library, utilizing <a target="_blank" href="http://en.wikipedia.org/wiki/SIMD">SIMD</a> for matrix operations (WIP)<br>Easily connect your local data and run classic <a target="_blank" href="http://en.wikipedia.org/wiki/Supervised_learning">supervised</a> and <a target="_blank" href="http://en.wikipedia.org/wiki/Unsupervised_learning"> unsupervised</a> algorithms</p>
-<p>Combined with latest HTML5 technology, your data gets even closer to your browser, allowing for a zero-server ML web apps. Check out <a target="_blank" href="http://www.mlplayground.org">ML Playground</a>, it's powered by simdfied and does exactly that!</p>
+<p>Combined with latest HTML5 technology, your data gets even closer to your browser, allowing for a zero-server ML web apps. Check out <a target="_blank" href="http://ml-playground.appspot.com">ML Playground</a>, it's powered by simdfied and does exactly that!</p>
 <p>simdfied is 100% pure javascript and is licensed under the MIT open-source <a target="_blank" href="https://github.com/morkrispil/simdfied/blob/master/LICENSE.md">license</a></p>
 <h2>SIMD technology</h2>
 <p><a target="_blank" href="http://en.wikipedia.org/wiki/SIMD">SIMD</a> allows for multiple computations in a single CPU instruction<br>It's even cooler when it comes to vectorized matrix operations, traditionally utilized only by desktop software</p>
